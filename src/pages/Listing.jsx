@@ -38,12 +38,12 @@ const Listing = () => {
 
   return (
     <div className="pb-40">
-      <main className="mb-8">
+      <main className="mb-8 relative">
         <Swiper slidesPerView={1} pagination={{ clickable: true }}>
-          {listing.imgUrls.map((url, index) => (
-            <SwiperSlide className="h-full" key={index}>
+          {listing.imgUrls.map((url, i) => (
+            <SwiperSlide className="h-full" key={i}>
               <img
-                src={listing.imgUrls[index]}
+                src={listing.imgUrls[i]}
                 className="w-full h-[500px] object-cover"
                 alt=""
               />
@@ -64,7 +64,7 @@ const Listing = () => {
                 .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         </div>
       </div>
-      <div className="fixed top-40 right-8 p-2 bg-black text-white dark:bg-white dark:text-black rounded-[50%]">
+      <div className="absolute top-40 right-8 p-2 z-[100] bg-black text-white dark:bg-white dark:text-black rounded-[50%]">
         <FaShare
           onClick={() => {
             navigator.clipboard.writeText(window.location.href);
@@ -79,7 +79,7 @@ const Listing = () => {
       </div>
       <>
         {shareLinkCopied && (
-          <p className="fixed top-60 -z-[100] rounded-lg p-2 right-8 bg-teal-400">
+          <p className="absolute top-60 z-[100] rounded-lg p-2 right-8 bg-teal-400">
             Link Copied!
           </p>
         )}
@@ -119,7 +119,7 @@ const Listing = () => {
       <div>
         <div className="text-xl text-center md:mt-8 mb-6">Location on map</div>
 
-        <div className="w-full h-[400px] -z-10">
+        <div className="w-full h-[400px]">
           <MapContainer
             style={{ height: "100%", width: "100%" }}
             center={[listing.geolocation.lat, listing.geolocation.lng]}

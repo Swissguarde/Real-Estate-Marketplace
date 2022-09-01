@@ -26,7 +26,6 @@ const OAuth = () => {
       }
       navigate("/");
     } catch (error) {
-      console.log(error);
       toast.error("Google authorization failed");
     }
   };

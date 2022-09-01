@@ -19,3 +19,8 @@ body {
 .btn-active {
   @apply p-2 w-7 h-3 border-2 bg-green-500 mr-2;
 }
+
+.custom::-webkit-file-upload-button {
+  background-color: #3b82f6;
+  border: none;
+}

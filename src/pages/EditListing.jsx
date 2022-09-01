@@ -6,14 +6,15 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import { addDoc, serverTimestamp, collection } from "firebase/firestore";
+import { serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase.config";
 import Spinner from "../components/Spinner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { nanoid } from "nanoid";
-const CreateListing = () => {
+const EditListing = () => {
   const [loading, setLoading] = useState(false);
+  const [listing, setListing] = useState(false);
   // eslint-disable-next-line
   const [useGeoLocation, setUseGeoLocation] = useState(true);
   const [formData, setFormData] = useState({
@@ -50,6 +51,7 @@ const CreateListing = () => {
 
   const auth = getAuth();
   const navigate = useNavigate();
+  const params = useParams();
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -67,6 +69,31 @@ const CreateListing = () => {
     };
   }, [isMounted]);
 
+  useEffect(() => {
+    if (listing && listing.userRef !== auth.currentUser.uid) {
+      toast.error("You cannot edit this listing");
+      navigate("/");
+    }
+  }, [auth.currentUser.uid, listing, navigate]);
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchListing = async () => {
+      const docRef = doc(db, "listings", params.listingId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setListing(docSnap.data());
+        setFormData({ ...docSnap.data(), address: docSnap.data().location });
+        setLoading(false);
+      } else {
+        navigate("/");
+        toast.error("Listing does not exist");
+      }
+    };
+
+    fetchListing();
+  }, [params.listingId, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -79,7 +106,6 @@ const CreateListing = () => {
     if (images.length > 6) {
       setLoading(false);
       toast.error("Max 6 images");
-      return;
     }
     let geolocation = {};
     let location;
@@ -167,16 +193,15 @@ const CreateListing = () => {
       geolocation,
       imgUrls,
     };
-
     formDataCopy.location = location;
     delete formDataCopy.images;
     delete formDataCopy.address;
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
-    console.log(formDataCopy);
 
-    const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+    const docRef = doc(db, "listings", params.listingId);
+    await updateDoc(docRef, formDataCopy);
     setLoading(false);
-    toast.success("Listing created");
+    toast.success("Listing updated");
     navigate(`/category/${formDataCopy.type}/${docRef.id}`);
   };
 
@@ -207,7 +232,7 @@ const CreateListing = () => {
 
   return (
     <div>
-      <div className="text-2xl text-blue-500">Create a listing</div>
+      <div className="text-2xl text-blue-500">Edit listing</div>
 
       <form onSubmit={handleSubmit} className="mt-10 md:max-w-[550px] pb-64">
         <label>Sell / Rent</label>
@@ -455,10 +480,9 @@ const CreateListing = () => {
         )}
 
         <label>Images</label>
-        <p className="text-xs text-gray-600 my-2">First image will be cover</p>
         <div>
           <input
-            className="custom p-3 w-[90%] md:w-[100%] text-center my-2 rounded-lg bg-black/80 text-white dark:bg-black/50"
+            className="p-3 w-[90%] md:w-[100%] text-center my-2 rounded-lg bg-black/80 text-white dark:bg-black/50"
             type="file"
             id="images"
             onChange={onAction}
@@ -473,10 +497,10 @@ const CreateListing = () => {
           type="submit"
           className="mt-6 p-2 rounded-lg w-full bg-blue-500"
         >
-          Create Listing
+          Edit Listing
         </button>
       </form>
     </div>
   );
 };
-export default CreateListing;
+export default EditListing;

@@ -15,7 +15,6 @@ import {
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import ListingItem from "../components/ListingItem";
-import Spinner from "../components/Spinner";
 
 const Profile = () => {
   const auth = getAuth();
@@ -81,18 +80,17 @@ const Profile = () => {
   };
 
   const onDelete = async (listingId) => {
-    if (window.confirm("Are you sure?")) {
-      const docRef = doc(db, "listings", listingId);
-      await deleteDoc(docRef);
-      const updatedListings = listings.map(
+    if (window.confirm("Are you sure you want to delete?")) {
+      await deleteDoc(doc(db, "listings", listingId));
+      const updatedListings = listings.filter(
         (listing) => listing.id !== listingId
       );
       setListings(updatedListings);
-      toast.success("Listing Deleted!");
-      navigate("/profile");
+      toast.success("Successfully deleted listing");
     }
   };
 
+  const onEdit = (listingId) => navigate(`/edit-listing/${listingId}`);
   return (
     <div className="pb-80">
       <div className="flex justify-between items-center">
@@ -139,9 +137,12 @@ const Profile = () => {
         </Link>
       </div>
 
-      {!loading && listings?.length > 0 && (
+      {!loading && listings?.length > 0 ? (
         <>
-          <p>Your Listings</p>
+          <div className="text-xl text-center text-blue-500 mb-2">
+            Your Listings
+          </div>
+          <p className="text-xs mb-4">Here are all the listings you created</p>
           <ul>
             {listings.map((listing) => (
               <ListingItem
@@ -149,10 +150,16 @@ const Profile = () => {
                 data={listing.data}
                 id={listing.id}
                 onDelete={() => onDelete(listing.id)}
+                onEdit={() => onEdit(listing.id)}
               />
             ))}
           </ul>
         </>
+      ) : (
+        <div className="text-center">
+          {" "}
+          You have no listings. Sell or Rent your property to create a listing
+        </div>
       )}
     </div>
   );
